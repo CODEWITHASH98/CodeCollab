@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: codecollab-postgres
+    environment:
+      POSTGRES_USER: codecollab
+      POSTGRES_PASSWORD: codecollab_secret
+      POSTGRES_DB: codecollab
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U codecollab" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codecollab-network
+
+  # Redis for Caching & Pub/Sub
+  redis:
+    image: redis:7-alpine
+    container_name: codecollab-redis
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy noeviction
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - codecollab-network
+
+  # Backend API Server
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: codecollab-server
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      DATABASE_URL: postgresql://codecollab:codecollab_secret@postgres:5432/codecollab
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-super-secret-jwt-key-change-in-production}
+      CLIENT_URL: http://localhost:5173
+    ports:
+      - "3001:3001"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    networks:
+      - codecollab-network
+    restart: unless-stopped
+
+  # Frontend Dev Server (optional - can run locally)
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile.dev
+    container_name: codecollab-client
+    environment:
+      VITE_API_URL: http://localhost:3001
+      VITE_WS_URL: ws://localhost:3001
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    depends_on:
+      - server
+    networks:
+      - codecollab-network
+
+  # Code Execution Sandbox (Docker-in-Docker)
+  executor:
+    build:
+      context: ./executor
+      dockerfile: Dockerfile
+    container_name: codecollab-executor
+    environment:
+      REDIS_URL: redis://redis:6379
+      EXECUTION_TIMEOUT: 10000
+      MAX_MEMORY: 128m
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - codecollab-network
+    privileged: true
+
+volumes:
+  postgres_data:
+  redis_data:
+
+
+networks:
+  codecollab-network:
+    driver: bridge

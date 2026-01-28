@@ -1,0 +1,47 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id       String  @id @default(uuid())
+  userId   String  @unique @default(uuid())
+  userName String
+
+  email        String?   @unique
+  passwordHash String?
+  authType     String    @default("guest") // "guest" | "google" | "github" | "email"
+
+  isGuest            Boolean   @default(true)
+  role               String    @default("user")
+  guestSessionExpiry DateTime?
+  lastSeen           DateTime  @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  rooms Room[] @relation("RoomCreator")
+}
+
+model Room {
+  id           String   @id @default(uuid())
+  roomId       String   @unique
+  code         String   @default("// Start coding...")
+  language     String   @default("javascript")
+  
+  createdBy    String
+  creator      User     @relation("RoomCreator", fields: [createdBy], references: [id])
+  
+  participants Json     @default("[]") // [{userId, userName, socketId}]
+  
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([roomId])
+}
