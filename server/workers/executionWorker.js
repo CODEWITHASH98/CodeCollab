@@ -3,14 +3,15 @@ import { executeCode } from '../services/codeExecutor.js';
 import { logger } from '../utils/logger.js';
 import { io } from '../app.js';
 import { SOCKET_EVENTS } from '../config/constants.js';
+import Redis from 'ioredis';
+import { getSanitizedRedisUrl } from '../config/redis.js';
 
 // Worker configuration
 const WORKER_OPTIONS = {
-    connection: {
-        host: process.env.REDIS_HOST || '127.0.0.1',
-        port: parseInt(process.env.REDIS_PORT) || 6379,
-        maxRetriesPerRequest: null,
-    },
+    connection: new Redis(getSanitizedRedisUrl(), {
+        maxRetriesPerRequest: null, // REQUIRED for BullMQ
+        enableReadyCheck: false,
+    }),
     concurrency: parseInt(process.env.WORKER_CONCURRENCY) || 5,
 };
 

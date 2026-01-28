@@ -1,16 +1,17 @@
 import { Queue } from 'bullmq';
 import { logger } from '../utils/logger.js';
+import Redis from 'ioredis';
+import { getSanitizedRedisUrl } from '../config/redis.js';
 
 // Code Execution Queue Configuration
 const QUEUE_NAME = 'code-execution';
 
 // Queue options
 const queueOptions = {
-    connection: {
-        host: process.env.REDIS_HOST || '127.0.0.1',
-        port: parseInt(process.env.REDIS_PORT) || 6379,
-        maxRetriesPerRequest: null,
-    },
+    connection: new Redis(getSanitizedRedisUrl(), {
+        maxRetriesPerRequest: null, // REQUIRED for BullMQ
+        enableReadyCheck: false,
+    }),
     defaultJobOptions: {
         attempts: 3,
         backoff: {

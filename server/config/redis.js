@@ -3,7 +3,20 @@ import { logger } from '../utils/logger.js';
 
 // Redis configuration with connection pooling and error handling
 // Redis configuration with connection pooling and error handling
-let REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+let REDIS_URL = process.env.REDIS_URL;
+
+// Fallback to constructing from components if URL is missing but HOST is present
+if (!REDIS_URL && process.env.REDIS_HOST) {
+  const host = process.env.REDIS_HOST;
+  const port = process.env.REDIS_PORT || 6379;
+  const password = process.env.REDIS_PASSWORD ? `:${process.env.REDIS_PASSWORD}@` : '';
+  REDIS_URL = `redis://${password}${host}:${port}`;
+}
+
+// Default to localhost if nothing is set
+if (!REDIS_URL) {
+  REDIS_URL = 'redis://127.0.0.1:6379';
+}
 
 // Fix: Sanitize REDIS_URL if user copied "redis-cli -u ..." comamnd
 if (REDIS_URL.includes(' -u ')) {
@@ -16,6 +29,9 @@ if (REDIS_URL.includes(' -u ')) {
 
 // Trim whitespace and remove quotes if present
 REDIS_URL = REDIS_URL.trim().replace(/^["']|["']$/g, '');
+
+// Export sanitized URL for BullMQ workers
+export const getSanitizedRedisUrl = () => REDIS_URL;
 
 class RedisClient {
   constructor() {

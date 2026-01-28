@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import { createAdapter } from "@socket.io/redis-adapter";
 import { CONFIG } from "./constants.js";
-import { redisClient } from "./redis.js";
+import { redisClient, getSanitizedRedisUrl } from "./redis.js"; // Import helper
 import jwt from "jsonwebtoken";
 import { logger } from "../utils/logger.js";
 
@@ -17,7 +17,8 @@ export function initializeSocket(httpServer) {
   });
 
   // Enable Redis adapter for horizontal scaling in production
-  if (process.env.NODE_ENV === 'production' && process.env.REDIS_URL) {
+  // Check against sanitized URL to support both REDIS_URL and REDIS_HOST configs
+  if (process.env.NODE_ENV === 'production' && getSanitizedRedisUrl()) {
     try {
       const pubClient = redisClient.getPublisher();
       const subClient = redisClient.getSubscriber();
