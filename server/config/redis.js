@@ -2,7 +2,20 @@ import Redis from 'ioredis';
 import { logger } from '../utils/logger.js';
 
 // Redis configuration with connection pooling and error handling
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+// Redis configuration with connection pooling and error handling
+let REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+
+// Fix: Sanitize REDIS_URL if user copied "redis-cli -u ..." comamnd
+if (REDIS_URL.includes(' -u ')) {
+  console.warn("⚠️ Detected CLI flags in REDIS_URL. Sanitizing...");
+  const match = REDIS_URL.match(/(redis|rediss):\/\/[^\s"]+/);
+  if (match) {
+    REDIS_URL = match[0];
+  }
+}
+
+// Trim whitespace and remove quotes if present
+REDIS_URL = REDIS_URL.trim().replace(/^["']|["']$/g, '');
 
 class RedisClient {
   constructor() {
