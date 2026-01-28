@@ -1,5 +1,6 @@
-export const API_URL = 'http://localhost:3001';
-export const SOCKET_URL = 'http://localhost:3001';
+// Use VITE_API_URL from environment, or fallback to localhost
+export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+export const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
 export const SOCKET_EVENTS = {
   // Room events

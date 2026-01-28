@@ -109,7 +109,7 @@ export default function CodeEditor() {
         // For now using the socket-based hint via useSocket
         response = await executionAPI.execute(code, language); // Temporary: using execute
         // Actually we should use socket for hints - but let's add API endpoint
-        response = await fetch(`http://localhost:3001/api/execute/hint`, {
+        response = await fetch(`${API_URL}/api/execute/hint`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
