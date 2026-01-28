@@ -4,7 +4,7 @@
 >
 > *Build, Debug, and Interview in Real-Time.*
 
-[![CI](https://github.com/YOURUSERNAME/CodeCollab/actions/workflows/ci.yml/badge.svg)](https://github.com/YOURUSERNAME/CodeCollab/actions)
+[![CI](https://github.com/CODEWITHASH98/CodeCollab/actions/workflows/ci.yml/badge.svg)](https://github.com/CODEWITHASH98/CodeCollab/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](CONTRIBUTING.md)
 [![Node.js](https://img.shields.io/badge/Node.js-20+-green.svg)](https://nodejs.org/)
@@ -77,7 +77,7 @@ CodeCollab uses a high-performance architecture optimized for low-latency commun
 
 ### 2. Clone & Install
 ```bash
-git clone https://github.com/YOURUSERNAME/CodeCollab.git
+git clone https://github.com/CODEWITHASH98/CodeCollab.git
 cd CodeCollab
 
 # Install dependencies
@@ -128,7 +128,7 @@ Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 ## 👤 Author
 
 **Your Name**
-- GitHub: [@YOURUSERNAME](https://github.com/YOURUSERNAME)
+- GitHub: [@CODEWITHASH98](https://github.com/CODEWITHASH98)
 - LinkedIn: [Your LinkedIn](https://linkedin.com/in/yourprofile)
 
 ---

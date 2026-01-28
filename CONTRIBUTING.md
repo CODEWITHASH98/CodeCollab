@@ -73,7 +73,7 @@ Thank you for your interest in contributing to CodeCollab! This document provide
 
 ## Where to Contribute
 
-Check out the [Issues](https://github.com/YOURUSERNAME/CodeCollab/issues) tab. Look for labels like:
+Check out the [Issues](https://github.com/CODEWITHASH98/CodeCollab/issues) tab. Look for labels like:
 - `good first issue` - Great for beginners.
 - `help wanted` - We generally need help here.
 - `bug` - Confirmed bugs that need fixing.
