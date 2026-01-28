@@ -90,11 +90,11 @@ app.use((err, req, res, next) => {
 
 app.use(express.urlencoded({ extended: true }));
 
-// CSRF Protection (enabled in production)
-app.use(csrfProtection({ enabled: process.env.NODE_ENV === 'production' }));
+// CSRF Protection (Disabled - using Bearer tokens)
+// app.use(csrfProtection({ enabled: process.env.NODE_ENV === 'production' }));
 
-// CSRF Token endpoint (for frontend to fetch token)
-app.get('/api/csrf-token', csrfTokenEndpoint);
+// CSRF Token endpoint
+// app.get('/api/csrf-token', csrfTokenEndpoint);
 
 // Passport initialization (for OAuth only, no sessions)
 app.use(passport.initialize());
