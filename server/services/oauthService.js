@@ -7,6 +7,32 @@ import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET;
 
+// Helper to find or create user
+async function findOrCreateUser(profile, authType) {
+  const email = profile.emails?.[0]?.value || `${profile.username}@github.local`;
+  const userName = profile.displayName || profile.username || email.split('@')[0];
+
+  let user = await prisma.user.findUnique({ where: { email } });
+
+  if (!user) {
+    user = await prisma.user.create({
+      data: {
+        userName,
+        email,
+        authType,
+        isGuest: false,
+        lastSeen: new Date(),
+      },
+    });
+  } else {
+    user = await prisma.user.update({
+      where: { id: user.id },
+      data: { lastSeen: new Date() },
+    });
+  }
+  return user;
+}
+
 // Google Strategy
 passport.use(
   new GoogleStrategy(
@@ -17,28 +43,7 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        const email = profile.emails[0].value;
-        const userName = profile.displayName;
-
-        let user = await prisma.user.findUnique({ where: { email } });
-
-        if (!user) {
-          user = await prisma.user.create({
-            data: {
-              userName,
-              email,
-              authType: "google",
-              isGuest: false,
-              lastSeen: new Date(),
-            },
-          });
-        } else {
-          user = await prisma.user.update({
-            where: { id: user.id },
-            data: { lastSeen: new Date() },
-          });
-        }
-
+        const user = await findOrCreateUser(profile, 'google');
         done(null, user);
       } catch (err) {
         done(err, null);
@@ -57,28 +62,7 @@ passport.use(
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
-        const email = profile.emails?.[0]?.value || `${profile.username}@github.local`;
-        const userName = profile.displayName || profile.username;
-
-        let user = await prisma.user.findUnique({ where: { email } });
-
-        if (!user) {
-          user = await prisma.user.create({
-            data: {
-              userName,
-              email,
-              authType: "github",
-              isGuest: false,
-              lastSeen: new Date(),
-            },
-          });
-        } else {
-          user = await prisma.user.update({
-            where: { id: user.id },
-            data: { lastSeen: new Date() },
-          });
-        }
-
+        const user = await findOrCreateUser(profile, 'github');
         done(null, user);
       } catch (err) {
         done(err, null);

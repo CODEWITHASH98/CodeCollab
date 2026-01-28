@@ -105,23 +105,15 @@ export default function CodeEditor() {
       let result;
 
       if (type === 'hint') {
-        // Call hint API via executionAPI (we need to add this) 
-        // For now using the socket-based hint via useSocket
-        response = await executionAPI.execute(code, language); // Temporary: using execute
-        // Actually we should use socket for hints - but let's add API endpoint
-        response = await fetch(`${API_URL}/api/execute/hint`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-          },
-          body: JSON.stringify({ code, language })
-        });
-        const data = await response.json();
-        result = data.data?.hint || data.hint || "Try breaking down the problem into smaller steps.";
+        const response = await executionAPI.getHint(code, language);
+        if (response.success && response.data) {
+          result = response.data.hint || "Try breaking down the problem into smaller steps.";
+        } else {
+          result = response.error || "Could not generate hint.";
+        }
 
       } else if (type === 'review') {
-        response = await executionAPI.reviewCode(code, language);
+        const response = await executionAPI.reviewCode(code, language);
         // Handle the response structure properly
         if (response.success && response.data) {
           const review = response.data;
@@ -133,7 +125,7 @@ export default function CodeEditor() {
         }
 
       } else if (type === 'explain') {
-        response = await executionAPI.explainCode(code, language);
+        const response = await executionAPI.explainCode(code, language);
         if (response.success && response.data) {
           result = response.data.explanation || response.data.message || "Code explanation not available.";
         } else {

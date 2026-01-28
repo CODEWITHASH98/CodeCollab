@@ -6,7 +6,7 @@ import { Button } from "../components/ui/Button";
 import { GlowCard } from "../components/ui/GlowCard";
 import { AnimatedText } from "../components/ui/AnimatedText";
 import HeroScene from "../components/3d/HeroScene";
-import { roomAPI } from "../services/api";
+import { roomAPI, getCookie, deleteCookie } from "../services/api";
 import { GuestLoginModal } from "../components/auth/GuestLoginModal";
 import { useAuth } from "../contexts/AuthContext";
 
@@ -23,24 +23,51 @@ export default function LandingPage() {
     const [searchParams, setSearchParams] = useSearchParams();
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [pendingAction, setPendingAction] = useState('create');
+    const [isLoading, setIsLoading] = useState(false); // New loading state
     const { isAuthenticated, logout } = useAuth();
 
-    // Handle OAuth Redirects
+    // Handle OAuth Redirects (Cookie Check > URL Check)
     useEffect(() => {
-        const token = searchParams.get("token");
-        const userData = searchParams.get("user");
+        const checkAuth = () => {
+            // Check for cookie first (new secure flow)
+            const cookieToken = getCookie("auth_token_transfer");
+            const cookieUser = getCookie("auth_user_transfer");
 
-        if (token && userData) {
-            try {
-                localStorage.setItem("token", token);
-                localStorage.setItem("user", userData);
-                setSearchParams({});
-                setShowAuthModal(true);
-                setPendingAction('create');
-            } catch (err) {
-                console.error("Failed to parse OAuth data", err);
+            let token = cookieToken || searchParams.get("token");
+            let userData = cookieUser || searchParams.get("user");
+
+            // URL decode user data if needed
+            if (userData) {
+                try {
+                    userData = decodeURIComponent(userData);
+                } catch (e) {
+                    console.warn("Failed to decode user data", e);
+                }
             }
-        }
+
+            if (token && userData) {
+                try {
+                    localStorage.setItem("token", token);
+                    localStorage.setItem("user", userData);
+
+                    // Cleanup
+                    deleteCookie("auth_token_transfer");
+                    deleteCookie("auth_user_transfer");
+                    setSearchParams({});
+
+                    // Trigger UI
+                    setShowAuthModal(true);
+                    setPendingAction('create');
+
+                    // Force a reload or state update if auth context needs it
+                    window.dispatchEvent(new Event('storage'));
+                } catch (err) {
+                    console.error("Failed to parse OAuth data", err);
+                }
+            }
+        };
+
+        checkAuth();
     }, [searchParams, setSearchParams]);
 
     const handleStartAction = (action) => {
@@ -54,13 +81,21 @@ export default function LandingPage() {
     };
 
     const createRoom = async () => {
+        if (isLoading) return; // Prevent double clicks
+
+        setIsLoading(true);
         try {
             const response = await roomAPI.createRoom();
-            if (response.success) {
+            if (response.success && response.data?.roomId) {
                 navigate(`/room/${response.data.roomId}`);
+            } else {
+                console.error("Failed to create room:", response.error);
+                // Optional: Show error toast here
             }
         } catch (error) {
             console.error("Failed to create room:", error);
+        } finally {
+            setIsLoading(false); // Reset loading state
         }
     };
 

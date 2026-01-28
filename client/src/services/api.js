@@ -4,8 +4,21 @@ import { API_URL } from "../utils/constants";
 const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
-  withCredentials: true, // Enable cookies for CSRF
+  withCredentials: true, // Enable cookies for CSRF and Auth
 });
+
+// ✅ Helper to read cookies
+export const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return null;
+};
+
+// ✅ Helper to delete cookies
+export const deleteCookie = (name) => {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+};
 
 // ✅ Add token automatically to every request
 api.interceptors.request.use((config) => {
@@ -92,6 +105,7 @@ export const roomAPI = {
       const response = await api.get("/api/rooms");
       return response.data;
     } catch (err) {
+      // Fix: Return properly structured error so frontend doesn't crash but knows it failed
       return { success: false, error: err.message, data: { rooms: [] } };
     }
   },
@@ -110,6 +124,14 @@ export const executionAPI = {
 
   explainCode: async (code, language) => {
     const response = await api.post("/api/execute/explain", { code, language });
+    return response.data;
+  },
+
+  // Added missing hint method for consistency
+  getHint: async (code, language) => {
+    // Note: The backend hint route is actually usually /hint inside execute, but we'll use consistent pattern
+    // Based on CodeEditor.jsx use, it was calling /api/execute/hint
+    const response = await api.post("/api/execute/hint", { code, language });
     return response.data;
   },
 

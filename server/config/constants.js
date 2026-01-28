@@ -1,7 +1,7 @@
 export const CONFIG = {
   PORT: process.env.PORT || 3001,
-  CLIENT_URL: (process.env.CLIENT_URL || 'http://localhost:5174').replace(/\/$/, ''),
-  NODE_ENV: process.env.NODE_ENV || 'development',
+  CLIENT_URL: (process.env.CLIENT_URL || 'https://code-collab-opal.vercel.app').replace(/\/$/, ''),
+  NODE_ENV: process.env.NODE_ENV || 'production',
   JWT_SECRET: process.env.JWT_SECRET,
 
   // Code execution limits
