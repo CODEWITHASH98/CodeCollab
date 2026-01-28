@@ -1,6 +1,6 @@
 export const CONFIG = {
   PORT: process.env.PORT || 3001,
-  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5174',
+  CLIENT_URL: (process.env.CLIENT_URL || 'http://localhost:5174').replace(/\/$/, ''),
   NODE_ENV: process.env.NODE_ENV || 'development',
   JWT_SECRET: process.env.JWT_SECRET,
 
