@@ -1,11 +1,12 @@
-import express from "express";
-import { guestLogin, register, login, me } from "../controllers/authController.js";
-import passport from "../services/oauthService.js";
-import { generateOAuthToken } from "../services/oauthService.js";
+import { CONFIG } from "../config/constants.js";
 
-import { authenticateToken } from "../middleware/auth.js";
+// ... existing code ...
 
-const router = express.Router();
+res.redirect(
+  `${CONFIG.CLIENT_URL || "https://code-collab-opal.vercel.app"}?token=${token}&user=${encodeURIComponent(
+    JSON.stringify(user)
+  )}`
+);
 
 // ✅ Existing routes (your original functions)
 router.post("/guest", guestLogin);
@@ -34,7 +35,7 @@ router.get(
     };
 
     res.redirect(
-      `${process.env.FRONTEND_URL || "http://localhost:5173"}?token=${token}&user=${encodeURIComponent(
+      `${process.env.FRONTEND_URL || "https://code-collab-opal.vercel.app/"}?token=${token}&user=${encodeURIComponent(
         JSON.stringify(user)
       )}`
     );
@@ -62,7 +63,7 @@ router.get(
     };
 
     res.redirect(
-      `${process.env.FRONTEND_URL || "http://localhost:5173"}?token=${token}&user=${encodeURIComponent(
+      `${process.env.FRONTEND_URL || "https://code-collab-opal.vercel.app/"}?token=${token}&user=${encodeURIComponent(
         JSON.stringify(user)
       )}`
     );
