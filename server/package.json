@@ -8,6 +8,7 @@
     "dev": "nodemon app.js",
     "start": "node app.js",
     "test": "vitest run",
+    "postinstall": "prisma generate",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:integration": "vitest run --config vitest.integration.config.js",
