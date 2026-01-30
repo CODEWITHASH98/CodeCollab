@@ -5,14 +5,18 @@ FROM node:20-alpine AS base
 FROM base AS deps
 WORKDIR /app
 COPY package*.json ./
+COPY prisma ./prisma/
 RUN npm ci --only=production
+RUN npx prisma generate
 
 # Development stage
 FROM base AS dev
 WORKDIR /app
 COPY package*.json ./
+COPY prisma ./prisma/
 RUN npm install
 COPY . .
+RUN npx prisma generate
 EXPOSE 3001
 CMD ["npm", "run", "dev"]
 
@@ -20,9 +24,10 @@ CMD ["npm", "run", "dev"]
 FROM base AS builder
 WORKDIR /app
 COPY package*.json ./
+COPY prisma ./prisma/
 RUN npm ci
 COPY . .
-RUN npm run db:generate
+RUN npx prisma generate
 
 # Production stage
 FROM base AS production
@@ -32,7 +37,7 @@ WORKDIR /app
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 expressjs
 
-# Copy production dependencies
+# Copy production dependencies and Prisma client
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 
