@@ -42,14 +42,17 @@ export default function CodeEditor() {
   const { roomId } = useParams();
   const navigate = useNavigate();
   const { toast, showToast, hideToast } = useToast();
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, isAuthenticated, logout, loading: authLoading } = useAuth();
 
-  // Redirect to home if not authenticated
+  // Track if editor is ready to emit changes
+  const [isReady, setIsReady] = useState(false);
+
+  // Redirect to home if not authenticated (only after loading finishes)
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       navigate('/');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
 
   // State
   const [language, setLanguage] = useState("javascript");
@@ -262,11 +265,18 @@ export default function CodeEditor() {
               height="100%"
               language={language}
               value={code}
-              onMount={() => setLoading(false)} // Dismiss loader when editor is ready
+              onMount={() => {
+                setLoading(false);
+                // Allow updates only after initial mount/load
+                setTimeout(() => setIsReady(true), 1000);
+              }}
               onChange={(value) => {
-                updateCode(value);
-                emitTyping();
-                setTimeout(emitStopTyping, 1000);
+                // Only emit updates if we are "ready" (locks race condition)
+                if (isReady) {
+                  updateCode(value);
+                  emitTyping();
+                  setTimeout(emitStopTyping, 1000);
+                }
               }}
               theme="cyberpunk"
               options={{

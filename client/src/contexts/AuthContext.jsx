@@ -50,10 +50,7 @@ export function AuthProvider({ children }) {
             const response = await authAPI.login(email, password);
             if (response.success) {
                 const { token: newToken, user: newUser } = response.data;
-                localStorage.setItem('token', newToken);
-                localStorage.setItem('user', JSON.stringify(newUser));
-                setToken(newToken);
-                setUser(newUser);
+                setAuth(newToken, newUser);
                 return { success: true };
             } else {
                 setError(response.error || 'Login failed');
@@ -65,7 +62,7 @@ export function AuthProvider({ children }) {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [setAuth]);
 
     const register = useCallback(async (userName, email, password) => {
         setLoading(true);
@@ -74,10 +71,7 @@ export function AuthProvider({ children }) {
             const response = await authAPI.register(userName, email, password);
             if (response.success) {
                 const { token: newToken, user: newUser } = response.data;
-                localStorage.setItem('token', newToken);
-                localStorage.setItem('user', JSON.stringify(newUser));
-                setToken(newToken);
-                setUser(newUser);
+                setAuth(newToken, newUser);
                 return { success: true };
             } else {
                 setError(response.error || 'Registration failed');
@@ -89,7 +83,7 @@ export function AuthProvider({ children }) {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [setAuth]);
 
     const guestLogin = useCallback(async (userName) => {
         setLoading(true);
@@ -98,10 +92,7 @@ export function AuthProvider({ children }) {
             const response = await authAPI.guestLogin(userName);
             if (response.success) {
                 const { token: newToken, user: newUser } = response.data;
-                localStorage.setItem('token', newToken);
-                localStorage.setItem('user', JSON.stringify(newUser));
-                setToken(newToken);
-                setUser(newUser);
+                setAuth(newToken, newUser);
                 return { success: true };
             } else {
                 setError(response.message || 'Guest login failed');
@@ -113,7 +104,7 @@ export function AuthProvider({ children }) {
         } finally {
             setLoading(false);
         }
-    }, []);
+    }, [setAuth]);
 
     const logout = useCallback(() => {
         localStorage.removeItem('token');
@@ -125,6 +116,15 @@ export function AuthProvider({ children }) {
 
     const isAuthenticated = !!token && !!user;
 
+    const setAuth = useCallback((newToken, newUser) => {
+        setToken(newToken);
+        setUser(newUser);
+        localStorage.setItem('token', newToken);
+        localStorage.setItem('user', JSON.stringify(newUser));
+    }, []);
+
+    // ... existing exports ...
+
     const value = {
         user,
         token,
@@ -135,6 +135,7 @@ export function AuthProvider({ children }) {
         register,
         guestLogin,
         logout,
+        setAuth, // New method exposed
     };
 
     return (

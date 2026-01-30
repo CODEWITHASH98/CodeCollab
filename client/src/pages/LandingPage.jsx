@@ -24,7 +24,7 @@ export default function LandingPage() {
     const [showAuthModal, setShowAuthModal] = useState(false);
     const [pendingAction, setPendingAction] = useState('create');
     const [isLoading, setIsLoading] = useState(false); // New loading state
-    const { isAuthenticated, logout } = useAuth();
+    const { isAuthenticated, logout, setAuth } = useAuth();
 
     // Handle OAuth Redirects (Cookie Check > URL Check)
     // Handle OAuth Redirects (Ticket > Cookie > URL token)
@@ -39,9 +39,8 @@ export default function LandingPage() {
                     if (response.success && response.data) {
                         const { token, user } = response.data;
 
-                        localStorage.setItem("token", token);
-                        // Ensure user is stored as string
-                        localStorage.setItem("user", typeof user === 'string' ? user : JSON.stringify(user));
+                        // Use setAuth for instant UI update (handles localStorage too)
+                        setAuth(token, user);
 
                         const pendingAction = localStorage.getItem('pending_action');
                         const pendingRoomId = localStorage.getItem('pending_room_id');

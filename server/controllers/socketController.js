@@ -174,12 +174,21 @@ export class SocketController {
   }
 
   handleCodeUpdate(socket, data) {
-    const { roomId, code } = data;
+    const { roomId, code, sync } = data;
     const room = activeRoomSessions.get(roomId);
     const user = users.get(socket.id);
 
     if (!room || !user) {
       logger.warning('Code update failed: room or user not found');
+      return;
+    }
+
+    // New: If sync is true (or code is null/undefined), this is a fetch request
+    if (sync || code === null || code === undefined) {
+      socket.emit(SOCKET_EVENTS.CODE_UPDATE, {
+        code: room.code,
+        userId: null // System update
+      });
       return;
     }
 
