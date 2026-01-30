@@ -37,12 +37,18 @@ function SceneContent() {
     );
 }
 
-export default function HeroScene() {
+import { memo } from "react";
+
+// ... existing code ...
+
+const HeroScene = memo(function HeroScene() {
     return (
         <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-            <Canvas camera={{ position: [0, 0, 5] }}>
+            <Canvas camera={{ position: [0, 0, 5] }} dpr={[1, 2]}>
                 <SceneContent />
             </Canvas>
         </div>
     );
-}
+});
+
+export default HeroScene;
