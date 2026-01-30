@@ -3,7 +3,7 @@ import passport from 'passport';
 import { generateOAuthToken } from '../services/oauthService.js';
 import { CONFIG } from '../config/constants.js';
 import { authenticateToken } from '../middleware/auth.js';
-import { guestLogin, register, login, me } from '../controllers/authController.js';
+import { guestLogin, register, login, me, exchangeTicket, createAuthTicket } from '../controllers/authController.js';
 
 const router = express.Router();
 
@@ -16,25 +16,27 @@ const handleOAuthSuccess = (req, res) => {
     email: req.user.email,
   });
 
-  // Pass token and user data via URL query parameters
-  // This is required because cookies cannot be shared across different domains (Render -> Vercel)
-  const redirectUrl = `${CONFIG.CLIENT_URL}?auth_status=success&token=${encodeURIComponent(token)}&user=${encodeURIComponent(user)}`;
+  // ✅ Secure Ticket Exchange Flow
+  // 1. Create a short-lived ticket (stored in Redis)
+  // 2. Redirect to frontend with ?ticket=UUID
+  // 3. Frontend exchanges ticket for token via POST request
 
-  // Still set cookies as a fallback for same-domain scenarios or if we add a custom domain later
-  res.cookie('auth_token_transfer', token, {
-    httpOnly: false,
-    secure: CONFIG.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 1000 // 1 minute
-  });
-
-  res.redirect(redirectUrl);
+  createAuthTicket(token, user)
+    .then(ticket => {
+      const redirectUrl = `${CONFIG.CLIENT_URL}?ticket=${ticket}`;
+      res.redirect(redirectUrl);
+    })
+    .catch(err => {
+      console.error('Failed to create auth ticket:', err);
+      res.redirect(`${CONFIG.CLIENT_URL}?auth_status=failed`);
+    });
 };
 
 // ✅ Existing routes
 router.post("/guest", guestLogin);
 router.post("/register", register);
 router.post("/login", login);
+router.post("/exchange", exchangeTicket); // New route for ticket exchange
 router.get("/me", authenticateToken, me);
 
 // ✅ Google OAuth

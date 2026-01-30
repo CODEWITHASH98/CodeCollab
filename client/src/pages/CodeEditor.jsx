@@ -55,7 +55,7 @@ export default function CodeEditor() {
   const [language, setLanguage] = useState("javascript");
   const [activeTab, setActiveTab] = useState("files");
   const [rightPanel, setRightPanel] = useState("chat"); // 'chat' | 'output' | null
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [showAnalytics, setShowAnalytics] = useState(false);
 
   // Chat State
@@ -248,10 +248,21 @@ export default function CodeEditor() {
           />
 
           <div className="flex-1 relative">
+            {/* Loading Skeleton */}
+            {loading && (
+              <div className="absolute inset-0 bg-[#0F0F0F] z-50 flex flex-col items-center justify-center">
+                <div className="flex flex-col items-center gap-4 animate-pulse">
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                  <div className="text-gray-400 font-mono text-sm">Initializing Environment...</div>
+                </div>
+              </div>
+            )}
+
             <Editor
               height="100%"
               language={language}
               value={code}
+              onMount={() => setLoading(false)} // Dismiss loader when editor is ready
               onChange={(value) => {
                 updateCode(value);
                 emitTyping();

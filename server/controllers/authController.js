@@ -1,7 +1,12 @@
 import prisma from '../config/database.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { generateUserId } from '../utils/helpers.js';
+import { v4 as uuidv4 } from 'uuid';
+import { cache } from '../config/redis.js';
+import { v4 as uuidv4 } from 'uuid';
+import { cache } from '../config/redis.js';
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_EXPIRY = process.env.JWT_EXPIRY || '7d';
@@ -122,4 +127,40 @@ export async function me(req, res, next) {
   } catch (error) {
     next(error);
   }
+}
+
+// ✅ Ticket Exchange Logic
+export async function exchangeTicket(req, res, next) {
+  try {
+    const { ticket } = req.body;
+
+    if (!ticket) {
+      return res.status(400).json({ success: false, error: 'Ticket is required' });
+    }
+
+    // Retrieve data from Redis (1-time use)
+    const ticketData = await cache.get(`auth_ticket:${ticket}`);
+
+    if (!ticketData) {
+      return res.status(400).json({ success: false, error: 'Invalid or expired ticket' });
+    }
+
+    // Delete ticket immediately to prevent replay
+    await cache.del(`auth_ticket:${ticket}`);
+
+    return res.json({
+      success: true,
+      data: ticketData // { token, user }
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+// Helper to store ticket (used by authRoutes)
+export async function createAuthTicket(token, user) {
+  const ticket = uuidv4();
+  // Store for 30 seconds only
+  await cache.set(`auth_ticket:${ticket}`, { token, user }, 30);
+  return ticket;
 }

@@ -27,9 +27,39 @@ export default function LandingPage() {
     const { isAuthenticated, logout } = useAuth();
 
     // Handle OAuth Redirects (Cookie Check > URL Check)
+    // Handle OAuth Redirects (Ticket > Cookie > URL token)
     useEffect(() => {
-        const checkAuth = () => {
-            // Check for cookie first (new secure flow)
+        const checkAuth = async () => {
+            // 1. Check for ticket (New Secure Flow)
+            const ticket = searchParams.get("ticket");
+
+            if (ticket) {
+                try {
+                    const response = await import("../services/api").then(m => m.authAPI.exchangeTicket(ticket));
+                    if (response.success && response.data) {
+                        const { token, user } = response.data;
+
+                        localStorage.setItem("token", token);
+                        // Ensure user is stored as string
+                        localStorage.setItem("user", typeof user === 'string' ? user : JSON.stringify(user));
+
+                        // Clear URL params
+                        setSearchParams({});
+
+                        // Trigger UI
+                        setShowAuthModal(true);
+                        setPendingAction('create');
+
+                        // Force auth update
+                        window.dispatchEvent(new Event('storage'));
+                        return;
+                    }
+                } catch (err) {
+                    console.error("Ticket exchange failed", err);
+                }
+            }
+
+            // 2. Check for cookie (Legacy/Fallback)
             const cookieToken = getCookie("auth_token_transfer");
             const cookieUser = getCookie("auth_user_transfer");
 

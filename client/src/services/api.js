@@ -52,6 +52,15 @@ export const authAPI = {
     return response.data;
   },
 
+  exchangeTicket: async (ticket) => {
+    try {
+      const response = await api.post("/api/auth/exchange", { ticket });
+      return response.data;
+    } catch (err) {
+      return { success: false, error: err.response?.data?.error || err.message };
+    }
+  },
+
   login: async (email, password) => {
     try {
       const response = await api.post("/api/auth/login", { email, password });
