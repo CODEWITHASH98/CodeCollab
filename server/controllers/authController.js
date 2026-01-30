@@ -1,10 +1,7 @@
 import prisma from '../config/database.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import jwt from 'jsonwebtoken';
 import { generateUserId } from '../utils/helpers.js';
-import { v4 as uuidv4 } from 'uuid';
-import { cache } from '../config/redis.js';
 import { v4 as uuidv4 } from 'uuid';
 import { cache } from '../config/redis.js';
 
