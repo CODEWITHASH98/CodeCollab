@@ -168,6 +168,40 @@ app.get('/metrics', async (req, res) => {
   }
 });
 
+// Manual Redis Test
+app.get('/redis-test', async (req, res) => {
+  try {
+    const testKey = 'test:connection';
+    const testValue = { status: 'working', timestamp: new Date().toISOString() };
+
+    // Test Write
+    await cache.set(testKey, testValue, 60); // 60s TTL
+
+    // Test Read
+    const result = await cache.get(testKey);
+
+    // Check connection status
+    const isHealthy = await redisClient.isHealthy();
+
+    if (result && result.status === 'working') {
+      res.json({
+        success: true,
+        message: 'Redis IO successful',
+        readResult: result,
+        connectionStatus: isHealthy ? 'Healthy' : 'Unhealthy'
+      });
+    } else {
+      throw new Error('Redis write succeeded but read failed (mismatch)');
+    }
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      detail: 'Ensure REDIS_URL is correct and accessible from this environment'
+    });
+  }
+});
+
 // API Info
 app.get('/', (req, res) => {
   res.json({

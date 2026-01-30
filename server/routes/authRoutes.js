@@ -16,25 +16,19 @@ const handleOAuthSuccess = (req, res) => {
     email: req.user.email,
   });
 
-  // Set temporary cookie for token transfer (1 min expiry)
-  // This is more secure than putting it in the URL
+  // Pass token and user data via URL query parameters
+  // This is required because cookies cannot be shared across different domains (Render -> Vercel)
+  const redirectUrl = `${CONFIG.CLIENT_URL}?auth_status=success&token=${encodeURIComponent(token)}&user=${encodeURIComponent(user)}`;
+
+  // Still set cookies as a fallback for same-domain scenarios or if we add a custom domain later
   res.cookie('auth_token_transfer', token, {
-    httpOnly: false, // Start false so clientJS can read it, then move to localStorage/httpOnly cookie
+    httpOnly: false,
     secure: CONFIG.NODE_ENV === 'production',
     sameSite: 'lax',
     maxAge: 60 * 1000 // 1 minute
   });
 
-  // Also pass user data in cookie to avoid URL clutter
-  res.cookie('auth_user_transfer', encodeURIComponent(user), {
-    httpOnly: false,
-    secure: CONFIG.NODE_ENV === 'production',
-    sameSite: 'lax',
-    maxAge: 60 * 1000
-  });
-
-  // Redirect to frontend
-  res.redirect(`${CONFIG.CLIENT_URL}?auth_status=success`);
+  res.redirect(redirectUrl);
 };
 
 // ✅ Existing routes
