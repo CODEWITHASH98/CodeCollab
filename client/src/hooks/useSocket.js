@@ -55,7 +55,17 @@ export function useSocket(roomId) {
       setConnecting(false);
       setError(null);
       reconnectAttempts.current = 0;
+
+      // Join room and request latest code state
       socket.emit(SOCKET_EVENTS.JOIN_ROOM, { roomId });
+
+      // Force request latest code after a short delay to ensure join is processed
+      setTimeout(() => {
+        if (socket.connected) {
+          console.log("🔄 Requesting latest code sync...");
+          socket.emit(SOCKET_EVENTS.CODE_UPDATE, { roomId, code: null, sync: true });
+        }
+      }, 500);
     });
 
     socket.on("connect_error", (err) => {

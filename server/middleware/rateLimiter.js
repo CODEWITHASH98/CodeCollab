@@ -94,16 +94,16 @@ function getClientIdentifier(req) {
 
 // Pre-configured rate limiters
 export const rateLimiters = {
-    // General API rate limit: 100 requests/minute
+    // General API rate limit: 1000 requests/minute (Relaxed for dev/testing)
     api: createRateLimiter({
-        limit: 100,
+        limit: 1000,
         windowSeconds: 60,
         keyPrefix: 'rl:api',
     }),
 
-    // Strict limit for auth endpoints: 10 requests/minute
+    // Strict limit for auth endpoints: 120 requests/minute (Relaxed from 10)
     auth: createRateLimiter({
-        limit: 10,
+        limit: 120,
         windowSeconds: 60,
         keyPrefix: 'rl:auth',
     }),

@@ -43,12 +43,28 @@ export default function LandingPage() {
                         // Ensure user is stored as string
                         localStorage.setItem("user", typeof user === 'string' ? user : JSON.stringify(user));
 
+                        const pendingAction = localStorage.getItem('pending_action');
+                        const pendingRoomId = localStorage.getItem('pending_room_id');
+
                         // Clear URL params
                         setSearchParams({});
 
-                        // Trigger UI
-                        setShowAuthModal(true);
-                        setPendingAction('create');
+                        // Execute pending action
+                        if (pendingAction === 'join' && pendingRoomId) {
+                            navigate(`/room/${pendingRoomId}`);
+                        } else if (pendingAction === 'create') {
+                            // Trigger creation (requires UI state update)
+                            setShowAuthModal(false);
+                            createRoom();
+                        } else {
+                            // Default to dashboard/modal
+                            setShowAuthModal(true);
+                            setPendingAction('create');
+                        }
+
+                        // Verify clean up
+                        localStorage.removeItem('pending_action');
+                        localStorage.removeItem('pending_room_id');
 
                         // Force auth update
                         window.dispatchEvent(new Event('storage'));
@@ -100,11 +116,21 @@ export default function LandingPage() {
         checkAuth();
     }, [searchParams, setSearchParams]);
 
-    const handleStartAction = (action) => {
+    const handleStartAction = (action, roomId = null) => {
         const token = localStorage.getItem("token");
-        if (token && action === 'create') {
-            createRoom();
+
+        // If already logged in, proceed immediately
+        if (token) {
+            if (action === 'create') {
+                createRoom();
+            } else if (action === 'join' && roomId) {
+                navigate(`/room/${roomId}`);
+            }
         } else {
+            // Store intent for after login
+            localStorage.setItem('pending_action', action);
+            if (roomId) localStorage.setItem('pending_room_id', roomId);
+
             setPendingAction(action);
             setShowAuthModal(true);
         }
