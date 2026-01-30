@@ -43,6 +43,13 @@ export function AuthProvider({ children }) {
         }
     }, [token]);
 
+    const setAuth = useCallback((newToken, newUser) => {
+        setToken(newToken);
+        setUser(newUser);
+        localStorage.setItem('token', newToken);
+        localStorage.setItem('user', JSON.stringify(newUser));
+    }, []);
+
     const login = useCallback(async (email, password) => {
         setLoading(true);
         setError(null);
@@ -116,15 +123,6 @@ export function AuthProvider({ children }) {
 
     const isAuthenticated = !!token && !!user;
 
-    const setAuth = useCallback((newToken, newUser) => {
-        setToken(newToken);
-        setUser(newUser);
-        localStorage.setItem('token', newToken);
-        localStorage.setItem('user', JSON.stringify(newUser));
-    }, []);
-
-    // ... existing exports ...
-
     const value = {
         user,
         token,
@@ -135,7 +133,7 @@ export function AuthProvider({ children }) {
         register,
         guestLogin,
         logout,
-        setAuth, // New method exposed
+        setAuth,
     };
 
     return (
