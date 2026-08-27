@@ -1,0 +1,14 @@
+FROM ghcr.io/engineer-man/piston:latest
+
+# The working directory in the Piston image is /piston
+WORKDIR /piston
+
+# Install the languages you want to support in your app
+# (You can add more from your pistonExecutor.js config)
+RUN node cli/index.js ppman install nodejs 18.15.0 || true
+RUN node cli/index.js ppman install python 3.10.0 || true
+RUN node cli/index.js ppman install gcc 10.2.0 || true
+RUN node cli/index.js ppman install java 15.0.2 || true
+
+# Expose Piston's default port
+EXPOSE 2000
